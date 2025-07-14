@@ -1,5 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
+// Structs básicas
 typedef struct data {
     int dia;
     int mes;
@@ -18,32 +21,149 @@ typedef struct producao {
     Fardo tipoDeFardo;
     int qtDeFardos;
     int tempoEmMin;
+    struct producao *prox;
 } Producao;
 
+Producao *inicio = NULL;
+
 void incluirProducao() {
-    printf("Função para incluir produção.\n");
+    Producao *nova = (Producao *) malloc(sizeof(Producao));
+    if (nova == NULL) {
+        printf("Erro de alocação de memória.\n");
+        return;
+    }
+
+    printf("Código da produção: ");
+    scanf("%d", &nova->codigo);
+
+    printf("Data (dd mm aaaa): ");
+    scanf("%d %d %d", &nova->dataProducao.dia, &nova->dataProducao.mes, &nova->dataProducao.ano);
+
+    printf("Cultivar: ");
+    scanf(" %[^\n]", nova->tipoDeFardo.cultivar);
+
+    printf("Tipo de feno (char): ");
+    scanf(" %c", &nova->tipoDeFardo.tipoDeFeno);
+
+    printf("Diâmetro: ");
+    scanf("%d", &nova->tipoDeFardo.diametro);
+
+    printf("Quantidade de fardos: ");
+    scanf("%d", &nova->qtDeFardos);
+
+    printf("Tempo em minutos: ");
+    scanf("%d", &nova->tempoEmMin);
+
+    nova->prox = inicio;
+    inicio = nova;
+
+    printf("Produção incluída com sucesso!\n");
 }
 
 void consultarProducao() {
-    printf("Função para consultar uma produção.\n");
+    int codigo;
+    printf("Digite o código da produção para consultar: ");
+    scanf("%d", &codigo);
+
+    Producao *atual = inicio;
+    while (atual != NULL) {
+        if (atual->codigo == codigo) {
+            printf("\n--- Detalhes da Produção ---\n");
+            printf("Código: %d\n", atual->codigo);
+            printf("Data: %02d/%02d/%04d\n", atual->dataProducao.dia, atual->dataProducao.mes, atual->dataProducao.ano);
+            printf("Cultivar: %s\n", atual->tipoDeFardo.cultivar);
+            printf("Tipo de feno: %c\n", atual->tipoDeFardo.tipoDeFeno);
+            printf("Diâmetro: %d\n", atual->tipoDeFardo.diametro);
+            printf("Quantidade de fardos: %d\n", atual->qtDeFardos);
+            printf("Tempo: %d minutos\n", atual->tempoEmMin);
+            return;
+        }
+        atual = atual->prox;
+    }
+
+    printf("Produção com código %d não encontrada.\n", codigo);
 }
 
 void alterarProducao() {
-    printf("Função para alterar uma produção.\n");
+    int codigo;
+    printf("Digite o código da produção para alterar: ");
+    scanf("%d", &codigo);
+
+    Producao *atual = inicio;
+    while (atual != NULL) {
+        if (atual->codigo == codigo) {
+            printf("Nova quantidade de fardos: ");
+            scanf("%d", &atual->qtDeFardos);
+
+            printf("Novo tempo (em minutos): ");
+            scanf("%d", &atual->tempoEmMin);
+
+            printf("Alteração realizada com sucesso!\n");
+            return;
+        }
+        atual = atual->prox;
+    }
+
+    printf("Produção com código %d não encontrada.\n", codigo);
 }
 
 void excluirProducao() {
-    printf("Função para excluir uma produção.\n");
+    int codigo;
+    printf("Digite o código da produção para excluir: ");
+    scanf("%d", &codigo);
+
+    Producao *atual = inicio;
+    Producao *anterior = NULL;
+
+    while (atual != NULL) {
+        if (atual->codigo == codigo) {
+            if (anterior == NULL) {
+                inicio = atual->prox;
+            } else {
+                anterior->prox = atual->prox;
+            }
+            free(atual);
+            printf("Produção excluída com sucesso!\n");
+            return;
+        }
+        anterior = atual;
+        atual = atual->prox;
+    }
+
+    printf("Produção com código %d não encontrada.\n", codigo);
 }
 
 void listarProducoes() {
-    printf("Função para listar todas as produções.\n");
+    if (inicio == NULL) {
+        printf("Nenhuma produção cadastrada.\n");
+        return;
+    }
+
+    printf("\n--- Lista de Produções ---\n");
+    Producao *atual = inicio;
+    while (atual != NULL) {
+        printf("Código: %d | Data: %02d/%02d/%04d | Cultivar: %s | Fenos: %d\n",
+            atual->codigo,
+            atual->dataProducao.dia,
+            atual->dataProducao.mes,
+            atual->dataProducao.ano,
+            atual->tipoDeFardo.cultivar,
+            atual->qtDeFardos);
+        atual = atual->prox;
+    }
+}
+
+void liberarLista() {
+    Producao *atual = inicio;
+    while (atual != NULL) {
+        Producao *temp = atual;
+        atual = atual->prox;
+        free(temp);
+    }
 }
 
 int main() {
     int opcao;
-
-    Producao *listaProducao; 
 
     do {
         printf("\n========== MENU DE PRODUÇÃO ==========\n");
@@ -73,11 +193,11 @@ int main() {
                 listarProducoes();
                 break;
             case 6:
+                liberarLista();
                 printf("Encerrando o programa...\n");
                 break;
             default:
                 printf("Opção inválida. Tente novamente.\n");
-                break;
         }
 
     } while (opcao != 6);
